@@ -61,6 +61,21 @@ app.delete("/api/persons/:id", (req, res) => {
 
 app.post("/api/persons", (req, res) => {
   const body = req.body;
+
+  if (!body.name || !body.number) {
+    return res.status(400).json({
+      error: "Name or phone number is missing",
+    });
+  }
+
+  const found = data.find((person) => person.name === body.name);
+
+  if (found) {
+    return res.status(400).json({
+      error: "Name must be unique",
+    });
+  }
+
   const newId = Math.floor(Math.random() * 1000 + 1);
   const newPerson = {
     id: newId,
