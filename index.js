@@ -60,10 +60,16 @@ app.get("/api/persons/:id", (req, res) => {
 });
 
 app.delete("/api/persons/:id", (req, res) => {
-  const id = Number(req.params.id);
-  data = data.filter((person) => person.id !== id);
+  const id = req.params.id;
 
-  res.status(204).end();
+  Person.findByIdAndDelete(id)
+    .then(() => {
+      res.status(204).end();
+    })
+    .catch((error) => {
+      console.log(error);
+      res.status(500).end();
+    });
 });
 
 app.post("/api/persons", (req, res) => {
