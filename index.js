@@ -102,6 +102,23 @@ app.post("/api/persons", (req, res, next) => {
     });
 });
 
+app.put("/api/persons/:id", (req, res, next) => {
+  const id = req.params.id;
+
+  Person.findByIdAndUpdate(id, {
+    number: req.body.number,
+  })
+    .then((updatedPerson) => {
+      res.json({
+        ...updatedPerson,
+        number: req.body.number,
+      });
+    })
+    .catch((error) => {
+      next(error);
+    });
+});
+
 app.use(unknownEndpoint);
 app.use(errorHandler);
 
