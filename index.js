@@ -13,6 +13,15 @@ morgan.token("body", (req) => {
   return JSON.stringify(req.body);
 });
 
+const unknownEndpoint = (req, res) => {
+  res.status(404).send({ error: "Unknown endpoint" });
+};
+
+const errorHandler = (error, req, res, next) => {
+  console.error(error.message);
+  next(error);
+};
+
 app.use(express.json());
 app.use(
   morgan(":method :url :status :res[content-length] - :response-time ms :body"),
@@ -24,18 +33,17 @@ app.get("/", (req, res) => {
   res.send("<h1>Hello World!</h1>");
 });
 
-app.get("/api/persons", (req, res) => {
+app.get("/api/persons", (req, res, next) => {
   Person.find({})
     .then((persons) => {
       res.json(persons);
     })
     .catch((error) => {
-      console.log(error);
-      res.status(500).end();
+      next(error);
     });
 });
 
-app.get("/info", (req, res) => {
+app.get("/info", (req, res, next) => {
   Person.find({})
     .then((persons) => {
       res.send(
@@ -43,8 +51,7 @@ app.get("/info", (req, res) => {
       );
     })
     .catch((error) => {
-      console.log(error);
-      res.status(500).end();
+      next(error);
     });
 });
 
@@ -59,7 +66,7 @@ app.get("/api/persons/:id", (req, res) => {
   }
 });
 
-app.delete("/api/persons/:id", (req, res) => {
+app.delete("/api/persons/:id", (req, res, next) => {
   const id = req.params.id;
 
   Person.findByIdAndDelete(id)
@@ -67,12 +74,11 @@ app.delete("/api/persons/:id", (req, res) => {
       res.status(204).end();
     })
     .catch((error) => {
-      console.log(error);
-      res.status(500).end();
+      next(error);
     });
 });
 
-app.post("/api/persons", (req, res) => {
+app.post("/api/persons", (req, res, next) => {
   const body = req.body;
 
   if (!body.name || !body.number) {
@@ -92,10 +98,12 @@ app.post("/api/persons", (req, res) => {
       res.json(savedPerson);
     })
     .catch((error) => {
-      console.log(error);
-      res.status(500).end();
+      next(error);
     });
 });
+
+app.use(unknownEndpoint);
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
