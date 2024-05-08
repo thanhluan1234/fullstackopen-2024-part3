@@ -19,6 +19,11 @@ const unknownEndpoint = (req, res) => {
 
 const errorHandler = (error, req, res, next) => {
   console.error(error.message);
+
+  if (error.name === "CastError") {
+    return res.status(400).send({ error: "Malformatted id" });
+  }
+
   next(error);
 };
 
@@ -55,15 +60,20 @@ app.get("/info", (req, res, next) => {
     });
 });
 
-app.get("/api/persons/:id", (req, res) => {
-  const id = Number(req.params.id);
-  const person = data.find((person) => person.id === id);
+app.get("/api/persons/:id", (req, res, next) => {
+  const id = req.params.id;
 
-  if (person) {
-    res.json(person);
-  } else {
-    res.status(404).end();
-  }
+  Person.findById(id)
+    .then((person) => {
+      if (person) {
+        res.json(person);
+      } else {
+        res.status(404).end();
+      }
+    })
+    .catch((error) => {
+      next(error);
+    });
 });
 
 app.delete("/api/persons/:id", (req, res, next) => {
